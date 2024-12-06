@@ -29,12 +29,33 @@ def walk(i, j, dir, visited=None, obstacle=None):
     return walk(i, j, dir, visited, obstacle)
 
 
+def walk_part2(i, j, dir, visited=None, obstacle=None, tried=None):
+    tried = tried or set()
+    visited = visited or set()
+    if (i, j, dir) in visited:
+        return 1  # loop
+
+    ni, nj = i + dir[0], j + dir[1]
+    if ni < 0 or ni >= n or nj < 0 or nj >= m:
+        return 0  # no loop
+
+    if not obstacle and (ni, nj) not in tried:
+        with_obstacle = walk_part2(i, j, dir, visited.copy(), (ni, nj), tried.copy())
+    else:
+        with_obstacle = 0
+
+    visited.add((i, j, dir))
+    tried.add((i, j))
+    if field[ni][nj] == "#" or (ni, nj) == obstacle:
+        dir = dirs[(dirs.index(dir) + 1) % len(dirs)]
+    else:
+        i, j = ni, nj
+
+    return with_obstacle + walk_part2(i, j, dir, visited, obstacle, tried)
+
+
 # part 1
 print(walk(start_i, start_j, start_dir))
 
 # part 2
-blocking_obstacles = sum(
-    walk(start_i, start_j, start_dir, obstacle=(obs_i, obs_j)) == -1
-    for obs_i in range(n) for obs_j in range(m)
-)
-print(blocking_obstacles)
+print(walk_part2(start_i, start_j, start_dir))
