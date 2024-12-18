@@ -9,7 +9,7 @@ def get_combo_operand_value(operand, a, b, c):
         return c
 
 
-def run_program(program, a, b, c, part2=False):
+def run_program(program, a, b, c):
     out = []
     i = 0
     while i < len(program):
@@ -30,8 +30,6 @@ def run_program(program, a, b, c, part2=False):
                 b = b ^ c
             case 5:
                 out.append(combo_operand & 7)
-                if part2 and out[len(out) - 1] != program[len(out) - 1]:
-                    return out
             case 6:
                 b = a >> combo_operand
             case 7:
@@ -42,19 +40,19 @@ def run_program(program, a, b, c, part2=False):
     return out
 
 
-def find_minimal_a(program):
-    n = len(program) // 2 + 1
-    div = 8**n
-    # mod = 192  # for the example
-    mod = 61442458  # brute forced, checked the command beginning is the same
-    mul = 1
-    while True:
-        a = mul * div + mod
-        if run_program(program, a, 0, 0) == program:
-            return a
-        mul += 1
+def find_possible_a(program, out, a, b, c):
+    if not out:
+        return [a]
+
+    res = []
+    sa = a << 3
+    for na in range(sa, sa + 8):
+        if run_program(program, na, b, c)[0] == out[-1]:
+            res.extend(find_possible_a(program, out[:-1], na, b, c))
+
+    return res
 
 
 program = [2,4,1,5,7,5,4,3,1,6,0,3,5,5,3,0]
 print(run_program(program, 61156655, 0, 0))  # part 1
-print(find_minimal_a(program))  # part 2
+print(min(find_possible_a(program, program, 0, 0, 0)))  # part 2
